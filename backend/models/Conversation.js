@@ -7,17 +7,13 @@ const ConversationSchema = new Schema({
     ref: "User", // Reference to the 'User' model (assuming you have a 'User' model)
     required: true,
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
-  interactions: [
+  messages: [
     {
-      question: { type: String, required: true },
-      answer: { type: String, required: true }
+        sender: { type: String, enum: ['user', 'AI'], required: true },
+        content: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
     },
-  ],
-  // Add any additional fields specific to your conversation requirements
+],
 });
 
 module.exports = mongoose.model("Conversation", ConversationSchema);

@@ -13,15 +13,14 @@ const processQuestion = async (
   question
 ) => {
   // Check if Pinecone index exists and create if necessary
-  await createPineconeIndex(pineconeClient, indexName, vectorDimension);
+  //await createPineconeIndex(pineconeClient, indexName, vectorDimension);
   const loader = new DirectoryLoader("./documents", {
     ".txt": (path) => new TextLoader(path),
     ".pdf": (path) => new PDFLoader(path),
   });
   const docs = await loader.load();
   // Update Pinecone vector store with document embeddings
-  await updateLangchain(pineconeClient, indexName, docs);
-
+  //await updateLangchain(pineconeClient, indexName, docs);
   // Query Pinecone vector store and GPT model for an answer
   const result = await queryOpenAI(pineconeClient, indexName, question);
 

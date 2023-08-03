@@ -1,4 +1,3 @@
-
 const { OpenAIEmbeddings } = require('langchain/embeddings/openai');
 const { OpenAI } = require("langchain/llms/openai");
 const { loadQAStuffChain } = require("langchain/chains");
@@ -46,9 +45,11 @@ const queryOpenAI =  async (
     });
 // 12. Log the answer
     console.log(`Answer: ${result.text}`);
+    return result.text;
   } else {
 // 13. Log that there are no matches, so GPT-3 will not be queried
     console.log("Since there are no matches, GPT-3 will not be queried.");
+    return null;
   }
 };
 
