@@ -5,12 +5,20 @@ const Conversation = require("../models/Conversation");
 const fetchuser = require('../middleware/fetchuser'); 
 
 module.exports = (client) => {
-  // Define a post request handler that takes the question from the request body and invokes the main function in main.js
   router.post("/", fetchuser, async (req, res) => {
     try {
       const { question } = req.body;
       const indexName = "your-pinecone-index-name"; // Adjust the index name if needed
       const vectorDimension = 1536; // Adjust the vector dimension if needed
+
+      // Retrieve conversation history from the MongoDB collection
+      const conversation = await Conversation.findOne({ user: req.user.id }).sort({ timestamp: -1 });
+
+      // Extract conversation context from messages
+      const context = conversation ? conversation.messages.map(msg => msg.content).join("\n") : "";
+
+      // Pass the question and conversation context to processQuestion
+      const result = await processQuestion(client, indexName, vectorDimension, question, context);
 
       // Save the user's question in the MongoDB collection
       const userMessage = {
@@ -18,29 +26,20 @@ module.exports = (client) => {
         content: question,
       };
 
-      // Create a new conversation instance
-      const conversation = new Conversation({
-        user: req.user.id, // Assuming fetchuser middleware sets req.user
-        messages: [userMessage],
-      });
-
-      // Save the conversation to the database
-      const savedConversation = await conversation.save();
-
-      // Pass the question to main.js to handle document loading and function calls
-      const result = await processQuestion(client, indexName, vectorDimension, question);
-
       // Save the AI's response in the MongoDB collection
       const aiMessage = {
         sender: "AI",
         content: result,
       };
 
-      // Push the AI's message to the conversation messages array
-      savedConversation.messages.push(aiMessage);
+      // Create a new conversation instance
+      const updatedConversation = new Conversation({
+        user: req.user.id, // Assuming fetchuser middleware sets req.user
+        messages: [userMessage, aiMessage], // Include both user's question and AI's response
+      });
 
-      // Save the updated conversation
-      await savedConversation.save();
+      // Save the updated conversation to the database
+      await updatedConversation.save();
 
       // Send the result as the response
       res.json({ result });
