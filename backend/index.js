@@ -26,6 +26,11 @@ const port = 5000;
 app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 
+// Add a simple GET request handler
+app.get('/', (req, res) => {
+  res.send('hello ish');
+});
+
 async function startServer(client) {
   app.listen(port, () => {
     console.log(`iNotebook backend listening at http://localhost:${port}`);

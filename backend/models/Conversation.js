@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const ConversationSchema = new Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // Reference to the 'User' model (assuming you have a 'User' model)
+    ref: "user", // Reference to the 'User' model (assuming you have a 'User' model)
     required: true,
   },
   messages: [

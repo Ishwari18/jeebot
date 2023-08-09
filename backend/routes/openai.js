@@ -2,40 +2,53 @@ const express = require("express");
 const router = express.Router();
 const { processQuestion } = require("../utils/main");
 const Conversation = require("../models/Conversation");
+const fetchuser = require('../middleware/fetchuser'); 
 
 module.exports = (client) => {
-// Define a post request handler that takes the question from the request body and invokes the main function in main.js
-router.post("/", async (req, res) => {
-  try {
-    const { question } = req.body;
-    const indexName = "your-pinecone-index-name"; // Adjust the index name if needed
-    const vectorDimension = 1536; // Adjust the vector dimension if needed
+  // Define a post request handler that takes the question from the request body and invokes the main function in main.js
+  router.post("/", fetchuser, async (req, res) => {
+    try {
+      const { question } = req.body;
+      const indexName = "your-pinecone-index-name"; // Adjust the index name if needed
+      const vectorDimension = 1536; // Adjust the vector dimension if needed
 
-    // Save the user's question in the MongoDB collection
-    const userMessage = { sender: "user", content: question };
-    const conversation = await Conversation.findOneAndUpdate(
-      { userId: req.userId }, // Assuming you have a unique userId for each user
-      { $push: { messages: userMessage } },
-      { upsert: true, new: true }
-    );
+      // Save the user's question in the MongoDB collection
+      const userMessage = {
+        sender: "user",
+        content: question,
+      };
 
-    // Pass the question to main.js to handle document loading and function calls
-    const result = await processQuestion(client, indexName, vectorDimension, question);
+      // Create a new conversation instance
+      const conversation = new Conversation({
+        user: req.user.id, // Assuming fetchuser middleware sets req.user
+        messages: [userMessage],
+      });
 
-    // Save the AI's response in the MongoDB collection
-    const aiMessage = { sender: "AI", content: result };
-    await Conversation.findByIdAndUpdate(
-      conversation._id,
-      { $push: { messages: aiMessage } }
-    );
+      // Save the conversation to the database
+      const savedConversation = await conversation.save();
 
-    // Send the result as the response
-    res.json({ result });
-  } catch (error) {
-    console.error("Error handling the question:", error);
-    res.status(500).json({ error: "Error handling the question" });
-  }
-});
+      // Pass the question to main.js to handle document loading and function calls
+      const result = await processQuestion(client, indexName, vectorDimension, question);
+
+      // Save the AI's response in the MongoDB collection
+      const aiMessage = {
+        sender: "AI",
+        content: result,
+      };
+
+      // Push the AI's message to the conversation messages array
+      savedConversation.messages.push(aiMessage);
+
+      // Save the updated conversation
+      await savedConversation.save();
+
+      // Send the result as the response
+      res.json({ result });
+    } catch (error) {
+      console.error("Error handling the question:", error);
+      res.status(500).json({ error: "Error handling the question" });
+    }
+  });
 
   return router;
 };
