@@ -1,7 +1,7 @@
 const connectToMongo = require('./db');
 const express = require('express');
 const cors = require('cors');
-const { PineconeClient } = require('@pinecone-database/pinecone'); // Import PineconeClient
+const { PineconeClient } = require('@pinecone-database/pinecone');
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -13,34 +13,30 @@ async function initializePineconeClient() {
       environment: process.env.PINECONE_ENVIRONMENT,
     });
     console.log('Pinecone client initialized.');
-    startServer(pineconeClient); // Pass pineconeClient as an argument to the startServer function
+    startServer(pineconeClient);
   } catch (error) {
     console.error('Error initializing Pinecone client:', error);
   }
 }
+
 connectToMongo();
 const app = express();
 const port = 5000;
+app.use(cors()); // Enable CORS
 
-// app.use(cors());
 app.use(express.json());
 app.use('/api/auth', require('./routes/auth'));
 app.use("/api/chat", require('./routes/chat'));
 
-
-// Add a simple GET request handler
 app.get('/', (req, res) => {
   res.send('hello ish');
 });
 
 async function startServer(client) {
+  app.use('/api/openai', require('./routes/openai')(client)); // Place this line here
   app.listen(port, () => {
     console.log(`iNotebook backend listening at http://localhost:${port}`);
   });
-  // Pass the pineconeClient as an argument to the openai.js route
-  app.use('/api/openai', require('./routes/openai')(client));
 }
 
-// Call the async function to initialize the Pinecone client and start the server
 initializePineconeClient();
-app.use(cors());
