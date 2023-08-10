@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
   const [credentials, setCredentials] = useState({ name: '', email: '', password: '' });
+  const [showAlert, setShowAlert] = useState(false);
   let navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,17 +20,30 @@ const Signup = () => {
     if (json.authtoken) {
       // Save the auth token and redirect
       localStorage.setItem('token', json.authtoken);
+      setShowAlert(true);
+
+      // Hide the alert after 3 seconds
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+
       navigate('/signup');
     } else {
       alert('Sign up failed. Please check the entered information.');
     }
   };
+
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
 
   return (
     <div>
+      {showAlert && (
+        <div className="alert alert-success" role="alert">
+          Sign up was successful!
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="name" className="form-label">

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = (props) => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [showAlert, setShowAlert] = useState(false);
   let navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,6 +23,13 @@ const Login = (props) => {
     if (json.success) {
       // Save the auth token and redirect
       localStorage.setItem("token", json.authtoken);
+      setShowAlert(true);
+
+      // Hide the alert after 3 seconds
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
+
       navigate("/login");
     } else {
       alert("Invalid credentials");
@@ -34,6 +42,11 @@ const Login = (props) => {
 
   return (
     <div>
+      {showAlert && (
+        <div className="alert alert-success" role="alert">
+          Login was successful!
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="email" className="form-label">

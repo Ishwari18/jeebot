@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import noteContext from "../context/notes/noteContext"; // Make sure to adjust the import path
 
 export const Chat = () => {
-    const host = "http://localhost:5000"
+  const host = "http://localhost:5000";
   const context = useContext(noteContext);
   const { chat } = context;
 
@@ -20,8 +20,7 @@ export const Chat = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "auth-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjRkNDBjZmNhNzgwYTI5Y2EwYTUxYWMwIn0sImlhdCI6MTY5MTYxOTYxN30.E6Od0A8a4p6ueyBw9NeuOishk0h_TKsBZVRjQP0Zoz0", // Replace with your actual auth token
+          "auth-token": localStorage.getItem("token"), // Fetch auth-token from localStorage
         },
       });
       const chatHistoryData = await response.json();
@@ -37,21 +36,21 @@ export const Chat = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       // Send the inputValue to your backend API for processing
       const response = await fetch(`${host}/api/openai`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "auth-token": "your-auth-token", // Replace with your actual auth token
+          "auth-token": localStorage.getItem("token"), // Fetch auth-token from localStorage
         },
         body: JSON.stringify({ question: inputValue }),
       });
-  
+
       const data = await response.json();
       const aiResponse = data.result;
-  
+
       // Update chat history with user's question and AI's response
       setChatHistory((prevHistory) => [
         ...prevHistory,
@@ -63,15 +62,15 @@ export const Chat = () => {
           ],
         },
       ]);
-  
+
       setInputValue(""); // Clear the input after submission
-  
+
       console.log("AI Response:", aiResponse); // Log the AI's response
     } catch (error) {
       console.error("Error handling the question:", error);
     }
   };
-  
+
   return (
     <>
       <div>Chat</div>

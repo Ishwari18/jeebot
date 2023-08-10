@@ -2,11 +2,16 @@ const express = require("express");
 const router = express.Router();
 const { processQuestion } = require("../utils/main");
 const Conversation = require("../models/Conversation");
-const fetchuser = require('../middleware/fetchuser'); 
+const fetchuser = require('../middleware/fetchuser');
 
 module.exports = (client) => {
   router.post("/", fetchuser, async (req, res) => {
     try {
+      // Check if the user is authenticated
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
       const { question } = req.body;
       const indexName = "your-pinecone-index-name"; // Adjust the index name if needed
       const vectorDimension = 1536; // Adjust the vector dimension if needed
